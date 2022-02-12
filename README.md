@@ -14,3 +14,7 @@ pyvirtualcam<br>
 ```
   pip install pyvirtualcam
 ```
+PyQt5<br>
+```
+  pip install PyQt5
+```
