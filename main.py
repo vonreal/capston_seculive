@@ -97,6 +97,7 @@ class Streaming(QThread):
     def __init__(self):
         super().__init__()
         self.running = True
+        self.filter = False
         self.prevtime = 0
         self.fps = fps
     
@@ -105,6 +106,12 @@ class Streaming(QThread):
 
     def stop(self):
         self.running = False
+
+    def filter_on(self):
+        self.filter = True
+    
+    def filter_off(self):
+        self.filter = False
         
     def run(self):
         command = ['ffmpeg',
@@ -113,15 +120,12 @@ class Streaming(QThread):
         '-f', 'rawvideo',
         '-vcodec','rawvideo',
         '-pix_fmt', 'bgr24',
+        '-r', '10',
         '-s', "{}x{}".format(width, height),
-        '-r', str(fps),
         '-i', '-',
-        '-itsoffset', '-1.25',
         '-f', 'dshow',
         '-rtbufsize', '10M',
         '-i', f"audio={audio}",
-        '-map', '0:v',
-        '-map', '1:a',
         '-c:v', 'libx264',
         '-pix_fmt', 'yuv420p',
         '-preset', 'ultrafast',
@@ -135,6 +139,9 @@ class Streaming(QThread):
             ret, frame = camera.read()
             if not ret:
                 break
+
+            if self.filter:
+                    frame = cartoon_filter(frame)
 
             self.prevtime, self.fps = print_fps_on_video(self.prevtime, self.fps, frame)
 
@@ -198,9 +205,11 @@ class MyApp(QWidget):
         if (btn.text() == '필터 적용'):
             btn.setText('필터 취소')
             self.virtualCam.filter_on()
+            self.streamming.filter_on()
         else:
             btn.setText('필터 적용')
             self.virtualCam.filter_off()
+            self.streamming.filter_off()
     
     def virtualCamClicked(self):
         btn = self.sender()
