@@ -6,5 +6,11 @@
 <a href=https://obsproject.com/ko>obs-virtual-camera<br>
 
 # 의존 라이브러리
-cv2<br>
+opencv<br>
+```
+  pip install opencv-python
+```
 pyvirtualcam<br>
+```
+  pip install pyvirtualcam
+```
