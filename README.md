@@ -6,5 +6,5 @@
 <a href=https://obsproject.com/ko>obs-virtual-camera<br>
 
 # 의존 라이브러리
-cv2 
-pyvirtualcam
+cv2<br>
+pyvirtualcam<br>
