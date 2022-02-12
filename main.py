@@ -92,7 +92,7 @@ class VirtualCam(QThread):
                 if self.running == False:
                     break
 
-# 5. 방송 스레드 - 필터 적용 X
+# 5. 방송 스레드
 class Streaming(QThread):
     def __init__(self):
         super().__init__()
