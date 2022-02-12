@@ -97,6 +97,7 @@ class Streaming(QThread):
     def __init__(self):
         super().__init__()
         self.running = True
+        self.prevtime = 0
         self.fps = fps
     
     def resume(self):
@@ -134,7 +135,9 @@ class Streaming(QThread):
             ret, frame = camera.read()
             if not ret:
                 break
-            
+
+            self.prevtime, self.fps = print_fps_on_video(self.prevtime, self.fps, frame)
+
             p.stdin.write(frame.tobytes())
 
             if self.running == False:
