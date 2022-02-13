@@ -92,7 +92,7 @@ class VirtualCam(QThread):
                 if self.running == False:
                     break
 
-# 5. 방송 스레드
+# 5. 방송 스레드 - 필터 적용 X
 class Streaming(QThread):
     def __init__(self):
         super().__init__()
@@ -158,7 +158,7 @@ class MyApp(QWidget):
         super().__init__()
         self.initUI()
         self.virtualCam = VirtualCam()
-        self.streamming = Streaming()
+        self.streaming = Streaming()
     
     def initUI(self):
         # [윈도우 타이틀]
@@ -205,11 +205,11 @@ class MyApp(QWidget):
         if (btn.text() == '필터 적용'):
             btn.setText('필터 취소')
             self.virtualCam.filter_on()
-            self.streamming.filter_on()
+            self.streaming.filter_on()
         else:
             btn.setText('필터 적용')
             self.virtualCam.filter_off()
-            self.streamming.filter_off()
+            self.streaming.filter_off()
     
     def virtualCamClicked(self):
         btn = self.sender()
@@ -226,12 +226,12 @@ class MyApp(QWidget):
         btn = self.sender()
         if (btn.text() == '방송 시작'):
             btn.setText('방송 중단')
-            self.streamming.resume()
-            self.streamming.start()
+            self.streaming.resume()
+            self.streaming.start()
         else:
             btn.setText('방송 시작')
-            self.streamming.stop()
-            self.streamming.quit()
+            self.streaming.stop()
+            self.streaming.quit()
 
     # [레이아웃] 데스크톱 정중앙에 위치
     def center(self):
