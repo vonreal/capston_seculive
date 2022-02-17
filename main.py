@@ -24,11 +24,8 @@ fps = int(camera.get(cv2.CAP_PROP_FPS))
 width = int(camera.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-# 2. 스트리밍 주소 설정 (server, stream_key)
-server_url = "rtmp://a.rtmp.youtube.com/live2"
-stream_key = "INPUT YOUR STREAM KEY"
-
-streaming_url = server_url + '/' + stream_key
+# 2. 스트리밍 주소
+streaming_url = ""
 
 # 3. 카툰 필터 및 fps 출력
 def cartoon_filter(img):
@@ -58,7 +55,7 @@ class VirtualCam(QThread):
     def __init__(self):
         super().__init__()
         self.running = True
-        self.filter = False
+        self.filter = True
         self.prevtime = 0
         self.fps = fps
 
@@ -92,12 +89,12 @@ class VirtualCam(QThread):
                 if self.running == False:
                     break
 
-# 5. 방송 스레드 - 필터 적용 X
+# 5. 방송 스레드
 class Streaming(QThread):
     def __init__(self):
         super().__init__()
         self.running = True
-        self.filter = False
+        self.filter = True
         self.prevtime = 0
         self.fps = fps
     
@@ -152,75 +149,221 @@ class Streaming(QThread):
         p.stdin.close()
         p.terminate()
 
-# 6. GUI 위젯
-class MyApp(QWidget):
+class MainWindow(QWidget):
+
     def __init__(self):
         super().__init__()
         self.initUI()
-        self.virtualCam = VirtualCam()
-        self.streaming = Streaming()
-    
+
     def initUI(self):
-        # [윈도우 타이틀]
-        self.setWindowTitle('SECULIVE')
+        # 로고 이미지 사용
+        pixmap = QPixmap('res/logo.png')
+        logo = QLabel()
+        logo.setPixmap(pixmap)
+        logo.setAlignment(Qt.AlignHCenter)
 
-        # [버튼]
-        # (1) 버튼 생성
-        filter_btn = QPushButton('필터 적용')
-        virtual_cam_btn = QPushButton('가상 카메라 시작')
-        streaming_btn = QPushButton('방송 시작')
-        btn = QPushButton('종료하기')
+        # [기능]
+        # 버튼
+        learn_data_add_btn = QPushButton('학습 데이터 추가', self)
+        transmission_btn = QPushButton('영상 출력 설정', self)
 
-        # (2) 버튼 클릭 이벤트
-        filter_btn.clicked.connect(self.filterClicked)
-        virtual_cam_btn.clicked.connect(self.virtualCamClicked)
-        streaming_btn.clicked.connect(self.streamClicked)
-        btn.clicked.connect(QCoreApplication.instance().quit)
+        # 버튼 클릭
+        transmission_btn.clicked.connect(self.openTransmissionClass)
 
-        # [레이아웃]
+        # [디자인]
+        # 레이아웃
+        vbox = QVBoxLayout()
+        vbox.addStretch(3)
+        vbox.addWidget(logo)
+        vbox.addStretch(1)
+        vbox.addWidget(learn_data_add_btn)
+        vbox.addWidget(transmission_btn)
+        vbox.addStretch(3)
+
         hbox = QHBoxLayout()
         hbox.addStretch(1)
-        hbox.addWidget(filter_btn)
-        hbox.addWidget(virtual_cam_btn)
-        hbox.addWidget(streaming_btn)
-        hbox.addWidget(btn)
+        hbox.addLayout(vbox)
         hbox.addStretch(1)
+
+        self.setLayout(hbox)
+
+    def openTransmissionClass(self):
+        widget.setCurrentIndex(widget.currentIndex()+1)
+
+class TransmissionWindow(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+
+    def initUI(self):
+        # 로고 이미지 사용
+        pixmap = QPixmap('res/logo.png')
+        logo = QLabel()
+        logo.setPixmap(pixmap)
+        logo.setAlignment(Qt.AlignHCenter)
+
+
+        # [기능]
+        # 버튼
+        streaming_btn = QPushButton('스트리밍', self)
+        virtual_cam_btn = QPushButton('가상 카메라', self)
+        before_btn = QPushButton('뒤로가기', self)
+
+        # 버튼 클릭
+        streaming_btn.clicked.connect(self.openStreamingClass)
+        virtual_cam_btn.clicked.connect(self.openBroadClass)
+        before_btn.clicked.connect(self.openMainClass)
+
+        # [디자인]
+        # 레이아웃
+        vbox = QVBoxLayout()
+        vbox.addStretch(3)
+        vbox.addWidget(logo)
+        vbox.addStretch(1)
+        vbox.addWidget(streaming_btn)
+        vbox.addWidget(virtual_cam_btn)
+        vbox.addWidget(before_btn)
+        vbox.addStretch(3)
+
+        hbox = QHBoxLayout()
+        hbox.addStretch(1)
+        hbox.addLayout(vbox)
+        hbox.addStretch(1)
+
+        self.setLayout(hbox)
+
+    def openMainClass(self):
+        widget.setCurrentIndex(widget.currentIndex()-1)
+
+    def openBroadClass(self):
+        widget.setCurrentIndex(widget.currentIndex()+2)
+
+    def openStreamingClass(self):
+        widget.setCurrentIndex(widget.currentIndex()+1)
+
+class StreamingWindow(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+        self.streaming = Streaming()
+
+    def initUI(self):
+        # 로고 이미지 사용
+        pixmap = QPixmap('res/logo.png')
+        logo = QLabel()
+        logo.setPixmap(pixmap)
+        logo.setAlignment(Qt.AlignHCenter)
+
+        # [기능]
+        # 버튼
+        server_label = QLabel("서버 주소")
+        self.server_url = QLineEdit()
+        key_label = QLabel("스트림 키")
+        self.stream_key = QLineEdit()
+        self.stream_key.setEchoMode(3)
+        before_btn = QPushButton('뒤로가기', self)
+        input_btn = QPushButton('확인', self)
+
+        # 버튼 클릭
+        before_btn.clicked.connect(self.openMainClass)
+        input_btn.clicked.connect(self.getURL)
+
+        # [디자인]
+        # 레이아웃
+        server_input_hbox = QHBoxLayout()
+        server_input_hbox.addWidget(server_label)
+        server_input_hbox.addWidget(self.server_url)
+
+        key_input_hbox = QHBoxLayout()
+        key_input_hbox.addWidget(key_label)
+        key_input_hbox.addWidget(self.stream_key)
+
+        btn_hbox = QHBoxLayout()
+        btn_hbox.addWidget(before_btn)
+        btn_hbox.addWidget(input_btn)
 
         vbox = QVBoxLayout()
         vbox.addStretch(3)
-        vbox.addLayout(hbox)
+        vbox.addWidget(logo)
         vbox.addStretch(1)
+        vbox.addLayout(server_input_hbox)
+        vbox.addLayout(key_input_hbox)
+        vbox.addStretch(1)
+        vbox.addLayout(btn_hbox)
+        vbox.addStretch(2)
 
-        self.setLayout(vbox)
+        hbox = QHBoxLayout()
+        hbox.addStretch(1)
+        hbox.addLayout(vbox)
+        hbox.addStretch(1)
 
-        # 윈도우 사이즈 및 위치
-        self.resize(500, 500)
-        self.center()
+        self.setLayout(hbox)
 
-        self.show()
+    def openMainClass(self):
+        widget.setCurrentIndex(widget.currentIndex()-1)
+
+    def getURL(self):
+        global streaming_url
+        streaming_url = self.server_url.text() + "/" + self.stream_key.text()
+        if (len(streaming_url) < 2):
+            QMessageBox.about(self, '경고', '입력값이 없습니다.')
+        else:
+            widget.setCurrentIndex(widget.currentIndex()+2)
+
+class StreamingBroadWindow(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+        self.streaming = Streaming()
+
+    def initUI(self):
+        # 로고 이미지 사용
+        pixmap = QPixmap('res/logo.png')
+        logo = QLabel()
+        logo.setPixmap(pixmap)
+        logo.setAlignment(Qt.AlignHCenter)
+
+        # [기능]
+        # 버튼
+        self.work_btn = QPushButton('방송 시작', self)
+        filter_btn = QPushButton('마스킹 제거', self)
+        main_btn = QPushButton('송출 중단 후 메인화면', self)
+
+        # 버튼 클릭
+        self.work_btn.clicked.connect(self.streamClicked)
+        filter_btn.clicked.connect(self.filterClicked)
+        main_btn.clicked.connect(self.stopAndOpenMainClass)
+
+        # [디자인]
+        # 레이아웃
+        vbox = QVBoxLayout()
+        vbox.addStretch(3)
+        vbox.addWidget(logo)
+        vbox.addStretch(1)
+        vbox.addWidget(self.work_btn)
+        vbox.addWidget(filter_btn)
+        vbox.addWidget(main_btn)
+        vbox.addStretch(3)
+
+        hbox = QHBoxLayout()
+        hbox.addStretch(1)
+        hbox.addLayout(vbox)
+        hbox.addStretch(1)
+
+        self.setLayout(hbox)
 
     # [버튼] 버튼 클릭 이벤트 처리 함수
     def filterClicked(self):
         btn = self.sender()
-        if (btn.text() == '필터 적용'):
-            btn.setText('필터 취소')
-            self.virtualCam.filter_on()
+        if (btn.text() == '마스킹 적용'):
+            btn.setText('마스킹 제거')
             self.streaming.filter_on()
         else:
-            btn.setText('필터 적용')
-            self.virtualCam.filter_off()
+            btn.setText('마스킹 적용')
             self.streaming.filter_off()
-    
-    def virtualCamClicked(self):
-        btn = self.sender()
-        if (btn.text() == '가상 카메라 시작'):
-            btn.setText('가상 카메라 중단')
-            self.virtualCam.resume()
-            self.virtualCam.start()
-        else:
-            btn.setText('가상 카메라 시작')
-            self.virtualCam.stop()
-            self.virtualCam.quit()
 
     def streamClicked(self):
         btn = self.sender()
@@ -233,14 +376,146 @@ class MyApp(QWidget):
             self.streaming.stop()
             self.streaming.quit()
 
-    # [레이아웃] 데스크톱 정중앙에 위치
-    def center(self):
-        qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
+    def stopAndOpenMainClass(self):
+        if  (self.work_btn.text() == '방송 중단'):
+            self.streaming.stop()
+            self.streaming.quit()
+        widget.setCurrentIndex(widget.currentIndex()-4)
+
+class VirtualCamBroadWindow(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+        self.virtualCam = VirtualCam()
+
+    def initUI(self):
+        # 로고 이미지 사용
+        pixmap = QPixmap('res/logo.png')
+        logo = QLabel()
+        logo.setPixmap(pixmap)
+        logo.setAlignment(Qt.AlignHCenter)
+
+        # [기능]
+        # 버튼
+        self.work_btn = QPushButton('가상 카메라 시작', self)
+        filter_btn = QPushButton('마스킹 제거', self)
+        main_btn = QPushButton('송출 중단 후 메인화면', self)
+
+        # 버튼 클릭
+        self.work_btn.clicked.connect(self.streamClicked)
+        filter_btn.clicked.connect(self.filterClicked)
+        main_btn.clicked.connect(self.stopAndOpenMainClass)
+
+        # [디자인]
+        # 레이아웃
+        vbox = QVBoxLayout()
+        vbox.addStretch(3)
+        vbox.addWidget(logo)
+        vbox.addStretch(1)
+        vbox.addWidget(self.work_btn)
+        vbox.addWidget(filter_btn)
+        vbox.addWidget(main_btn)
+        vbox.addStretch(3)
+
+        hbox = QHBoxLayout()
+        hbox.addStretch(1)
+        hbox.addLayout(vbox)
+        hbox.addStretch(1)
+
+        self.setLayout(hbox)
+
+    # [버튼] 버튼 클릭 이벤트 처리 함수
+    def filterClicked(self):
+        btn = self.sender()
+        if (btn.text() == '마스킹 적용'):
+            btn.setText('마스킹 제거')
+            self.virtualCam.filter_on()
+        else:
+            btn.setText('마스킹 적용')
+            self.virtualCam.filter_off()
+
+    def streamClicked(self):
+        btn = self.sender()
+        if (btn.text() == '가상 카메라 시작'):
+            btn.setText('가상 카메라 중단')
+            self.virtualCam.resume()
+            self.virtualCam.start()
+        else:
+            btn.setText('가상 카메라 시작')
+            self.virtualCam.stop()
+            self.virtualCam.quit()
+
+    def stopAndOpenMainClass(self):
+        if  (self.work_btn.text() == '가상 카메라 중단'):
+            self.virtualCam.stop()
+            self.virtualCam.quit()
+        widget.setCurrentIndex(widget.currentIndex()-3)
 
 if __name__ == '__main__':
+    def center(widget):
+        qr = widget.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        widget.move(qr.topLeft())
+
     app = QApplication(sys.argv)
-    ex = MyApp()
+    
+    widget = QStackedWidget()
+
+    # [디자인]
+    # 창 제목 및 아이콘 적용
+    widget.setWindowTitle('SecuLive')
+    widget.setWindowIcon(QIcon('res/live.png'))
+    
+    # 로고 이미지 사용
+    pixmap = QPixmap('res/logo.png')
+    logo = QLabel()
+    logo.setPixmap(pixmap)
+    logo.setAlignment(Qt.AlignHCenter)
+
+    # 폰트 설정
+    fontDB = QFontDatabase()
+    fontDB.addApplicationFont('res/SCDream5.otf')
+    app.setFont(QFont('에스코어 드림 5 Medium'))
+    
+    
+    mainWindow = MainWindow()
+    transmissionWindow = TransmissionWindow()
+    streamingWindow = StreamingWindow()
+    virtualCamBroadWindow = VirtualCamBroadWindow()
+    streamingBroadWindow = StreamingBroadWindow()
+
+    widget.addWidget(mainWindow)
+    widget.addWidget(transmissionWindow)
+    widget.addWidget(streamingWindow)
+    widget.addWidget(virtualCamBroadWindow)
+    widget.addWidget(streamingBroadWindow)
+
+
+    # [트레이 아이콘]
+    tray_icon = QSystemTrayIcon()
+    tray_icon.setIcon(QIcon('res/live.png'))
+
+    show_action = QAction("Show")
+    hide_action = QAction("Hide")
+    quit_action = QAction("Exit")
+
+    show_action.triggered.connect(widget.show)
+    hide_action.triggered.connect(widget.hide)
+    quit_action.triggered.connect(qApp.quit)
+    
+    tray_menu = QMenu()
+    tray_menu.addAction(show_action)
+    tray_menu.addAction(hide_action)
+    tray_menu.addAction(quit_action)
+    tray_icon.setContextMenu(tray_menu)
+    tray_icon.show()
+    
+
+    # [윈도우 정보]
+    widget.resize(640, 480)
+    center(widget)
+    widget.show()
+
     sys.exit(app.exec_())
